@@ -1,13 +1,15 @@
 import pygame as pg
 import random as rand
+from math import cos, sin, pi, trunc
 
 import numpy as np
-import math
 
 from settings import *
+from utils import *
 
-d2r = math.pi / 180
-r2d = 180 / math.pi
+d2r = pi / 180 # degree to radians 
+r2d = 180 / pi # radians to degree
+fov = pi / 3 # field of view
 
 cc = CommonColors()
 colors = (cc.White, cc.Silver, cc.Gray, cc.Red, cc.Maroon, cc.Yellow, cc.Olive, cc.Lime, cc.Green, cc.Aqua, cc.Teal, cc.Blue)
@@ -59,10 +61,14 @@ class Game:
 
         self.draw_map(self.map, self.display)
         self.draw_player(self.player, self.display)
+        # self.draw_laser_line(self.player, self.display, self.map, self.player.a)
+        self.draw_fov(self.player, self.display, self.map)
+
+        self.once = True
 
     def draw_map(self, g_map, display):
-        rect_w = SCR_WIDTH / MAP_WIDTH
-        rect_h = SCR_HEIGHT / MAP_HIEGHT
+        rect_w = int(SCR_WIDTH / MAP_WIDTH)
+        rect_h = int(SCR_HEIGHT / MAP_HIEGHT)
         for i in range(MAP_HIEGHT):
             for j in range(MAP_WIDTH):
                 ind = i + MAP_WIDTH * j
@@ -74,6 +80,26 @@ class Game:
     def draw_player(self, player, display):
         p = player
         pg.draw.rect(display, p.color, (p.x, p.y, p.w, p.h))
+
+    def draw_laser_line(self, player, display, gmap, angle):
+        rect_w = SCR_WIDTH / MAP_WIDTH
+        rect_h = SCR_HEIGHT / MAP_HIEGHT
+
+        for i in range(SCR_WIDTH):
+            x = ftoi(player.x + i * cos(angle * d2r))
+            y = ftoi(player.y + i * sin(angle * d2r))
+            mx = int(x / rect_w)
+            my = int(y / rect_h)
+
+            mi = mx + my*MAP_WIDTH
+            if gmap[mi] != ' ': break
+        
+            display.set_at((x, y), cc.Black)
+
+    def draw_fov(self, player, display, gmap):
+        for i in range(60):
+            angle = i + player.a
+            self.draw_laser_line(player, display, gmap, angle)
         
     def render(self):
         pg.display.update()
@@ -103,14 +129,16 @@ class Game:
         #     self.display.fill(BLACK)
         # elif key_pressed[pg.K_DOWN]:
         #     self.display.fill(BLACK)
-        # elif key_pressed[pg.K_LEFT]:
-        #     self.display.fill(BLACK)
-        # elif key_pressed[pg.K_RIGHT]:
-        #     self.display.fill(BLACK)
+        if key_pressed[pg.K_LEFT]:
+            self.player.a += 1
+        if key_pressed[pg.K_RIGHT]:
+            self.player.a -= 1
 
         self.display.fill(cc.White)
         self.draw_map(self.map, self.display)
         self.draw_player(self.player, self.display)
+        # self.draw_laser_line(self.player, self.display, self.map, self.player.a)
+        self.draw_fov(self.player, self.display, self.map)
             
 
     def quit(self):
