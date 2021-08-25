@@ -1,4 +1,4 @@
-def ftoi(f: float):
+def ftoi(f: float) -> int:
     return int(f + 0.5)
     
 def frange(start, end, step: float):
